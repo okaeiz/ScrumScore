@@ -32,6 +32,10 @@ The Scrum Adherence Score Calculator emerged from the need to quantify the adher
 4. **Release (Factor D)**:
     - **Description**: Determines the success rate of user story completions in a sprint.
     - **Formula**: `ratio of the story points of completed user stories to the total story points of the current sprint`
+  
+5. **Release (Factor E)**:
+    - **Description**: Determines the contribution of the team in relation to the total story points that are completed as whole in the current sprint.
+    - **Formula**: `ratio of the story points of completed user stories for a specific department to the story points of completed user stories for all departments in the current sprint`
 
 ## Formula Evolution
 
@@ -44,6 +48,8 @@ The Scrum Adherence Score Calculator emerged from the need to quantify the adher
     - [Factor B Query](link-to-factor-B-query)
     - [Factor C Query](https://github.com/okaeiz/ScrumScore/blob/main/C%20factor.sql)
     - [Factor D Query](https://github.com/okaeiz/ScrumScore/blob/main/D%20factor.sql)
+    - [Factor E Query](https://github.com/okaeiz/ScrumScore/blob/main/E%20factor.sql)
+
     
 - **Python Script**: [Final Score Calculator](link-to-python-script)
 
