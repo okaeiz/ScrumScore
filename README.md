@@ -57,7 +57,7 @@ The Scrum Adherence Score Calculator emerged from the need to quantify the adher
 
 - **SQL Queries**:
     - [Factor A Query](https://github.com/okaeiz/ScrumScore/blob/main/A%20factor.sql)
-    - [Factor B Query]((https://github.com/okaeiz/ScrumScore/blob/main/B%20factor.sql)) 
+    - [Factor B Query](https://github.com/okaeiz/ScrumScore/blob/main/B%20factor.sql) 
     - [Factor C Query](https://github.com/okaeiz/ScrumScore/blob/main/C%20factor.sql)
     - [Factor D Query](https://github.com/okaeiz/ScrumScore/blob/main/D%20factor.sql)
     - [Factor E Query](https://github.com/okaeiz/ScrumScore/blob/main/E%20factor.sql)
