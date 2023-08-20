@@ -1,11 +1,19 @@
 -- MAKE SURE YOU HAVE ENTERED THE USERS' COMMITMENT BEFORE TRYING TO RUN THIS QUERY!
---Calculating the ratio
+CREATE OR REPLACE FUNCTION fetch_a_value(pid INT)
+RETURNS FLOAT AS $$
+DECLARE
+    ratio FLOAT;
+BEGIN
+
+
+-- Calculating the ratio
 SELECT
     (
         "storypoints"."total_SPs" / "commitment"."expected_storypoints"
     )
+INTO ratio
 FROM
-    --team commitment
+    -- team commitment
     (
         SELECT
             "public"."users_commitment"."expected_storypoints" AS "expected_storypoints"
@@ -13,14 +21,14 @@ FROM
             "public"."users_commitment"
             LEFT JOIN "public"."scrum_projects" AS "Scrum Projects - Project" ON "public"."users_commitment"."project" = "Scrum Projects - Project"."ref"
         WHERE
-            "Scrum Projects - Project"."ref" = 5
+            "Scrum Projects - Project"."ref" = pid
             AND ("date_of_entry") >= (
                 SELECT
                     "estimated_start"
                 FROM
                     "public"."milestones_milestone"
                 WHERE
-                    "public"."milestones_milestone"."project_id" = 5
+                    "public"."milestones_milestone"."project_id" = pid
                 ORDER BY
                     "estimated_finish" DESC
                 LIMIT
@@ -32,7 +40,7 @@ FROM
                 FROM
                     "public"."milestones_milestone"
                 WHERE
-                    "public"."milestones_milestone"."project_id" = 5
+                    "public"."milestones_milestone"."project_id" = pid
                 ORDER BY
                     "estimated_finish" DESC
                 LIMIT
@@ -43,21 +51,22 @@ FROM
         LIMIT
             1
     ) AS "commitment",
-    --team planned SPs
+    -- team planned SPs
     (
-        --previous milestone id
+        -- previous milestone id
         WITH PreviousMilestone AS (
             SELECT
                 "id"
             FROM
                 "public"."milestones_milestone"
             WHERE
-                "project_id" = 5
+                "project_id" = pid
             ORDER BY
                 "estimated_finish" DESC OFFSET 1
             LIMIT
                 1
-        ), --total SPs
+        ),
+        -- total SPs
         SPs AS (
             SELECT
                 "userstories_userstory"."id" AS userstory_id,
@@ -67,14 +76,14 @@ FROM
                 LEFT JOIN "public"."userstories_rolepoints" AS "Userstories_Rolepoints" ON "userstories_userstory"."id" = "Userstories_Rolepoints"."user_story_id"
                 LEFT JOIN "public"."projects_points" AS "Projects Points - Points" ON "Userstories_Rolepoints"."points_id" = "Projects Points - Points"."id"
             WHERE
-                "userstories_userstory"."project_id" = 5
+                "userstories_userstory"."project_id" = pid
                 AND "userstories_userstory"."milestone_id" IN (
                     SELECT
                         "id"
                     FROM
                         "public"."milestones_milestone"
                     WHERE
-                        "project_id" = 5
+                        "project_id" = pid
                     ORDER BY
                         "estimated_finish" DESC
                     LIMIT
@@ -83,7 +92,7 @@ FROM
             GROUP BY
                 "userstories_userstory"."id"
         ),
-        --SPs that are done (subtract this value from the total_SPs if needed)
+        -- SPs that are done (subtract this value from the total_SPs if needed)
         to_subtract AS (
             SELECT
                 milestone_id,
@@ -103,4 +112,10 @@ FROM
         FROM
             SPs,
             to_subtract
-    ) AS "storypoints"
+    ) AS "storypoints";
+
+RETURN ratio;
+
+END;
+$$ LANGUAGE plpgsql;
+
