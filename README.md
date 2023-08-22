@@ -63,13 +63,11 @@ The Scrum Adherence Score Calculator emerged from the need to quantify the adher
     - [Factor E Query](https://github.com/okaeiz/ScrumScore/blob/main/E%20factor.sql)
     - [Factor R2 Query](https://github.com/okaeiz/ScrumScore/blob/main/R2%20factor.sql)
     
-- **Python Script**: [Final Score Calculator](link-to-python-script)
-
 ## Usage
 
 1. Execute the SQL queries for Factors A through R2.
-2. Feed the results into the Python script.
-3. Run the script to get the final Scrum Adherence Score.
+2. Create the view in the database.
+3. The data shown in your visualization tool (e.g. Metabase) is now retrieved from the view and is ONLINE!
 
 Detailed steps can be found in the [usage guide](https://docs.google.com/document/d/1C2Dp8DS4XJ6Q252b2aLyR4glQ-CHptWlRDdlIBfs6ng/edit#heading=h.o1j4rmhg8qcc) or inline instructions in the Python script.
 
