@@ -42,10 +42,20 @@ GROUP BY "public"."userstories_userstory"."subject"
 ORDER BY "public"."userstories_userstory"."subject" ASC),
 
             total_done_SPs AS (WITH latest_milestones AS (
-    SELECT "id"
-    FROM "public"."milestones_milestone"
-    WHERE "project_id" IN (28, 32, 29, 40, 37, 31, 34, 9, 30, 35, 43, 5, 39, 50)
-    ORDER BY "project_id", "estimated_finish" DESC
+WITH RankedMilestones AS (
+    SELECT
+        "id",
+        "project_id",
+        "estimated_finish",
+        ROW_NUMBER() OVER(PARTITION BY "project_id" ORDER BY "estimated_finish" DESC) AS rn
+    FROM
+        "public"."milestones_milestone"
+    WHERE
+        "project_id" IN (28, 32, 29, 40, 37, 31, 34, 9, 30, 35, 43, 5, 39, 50)
+)
+SELECT "id"
+FROM RankedMilestones
+WHERE rn = 1
 )
 
 SELECT
