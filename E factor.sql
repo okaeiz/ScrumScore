@@ -36,7 +36,7 @@ FROM
     ORDER BY 
       "public"."userstories_userstory"."subject" ASC
   ) AS project_done_SPs;
-IF count_project_done_SPs = 0 THEN RAISE EXCEPTION 'The selected team has not completed any user stories in the current milestone!';
+IF count_project_done_SPs = 0 THEN RETURN 0;
 ELSE RETURN (
   WITH project_done_SPs AS (
     SELECT 

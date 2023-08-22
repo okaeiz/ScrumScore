@@ -65,7 +65,12 @@ ResultQuery AS (
     FROM Query1 Q1
     JOIN Query2 Q2 ON Q1."subject" = Q2."subject"
 )
-SELECT AVG("source"."ratio")
+SELECT 
+    CASE
+        WHEN AVG("source"."ratio") IS NULL THEN 0
+        ELSE AVG("source"."ratio")
+    END AS "avg"
+
 INTO result_value
 FROM ResultQuery AS "source";
 

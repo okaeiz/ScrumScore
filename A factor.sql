@@ -8,15 +8,19 @@ BEGIN
 
 -- Calculating the ratio
 SELECT
-    (
-        "storypoints"."total_SPs" / "commitment"."expected_storypoints"
-    )
+    CASE
+        WHEN "storypoints"."total_SPs" = 0 OR "commitment"."expected_storypoints" = 0 THEN 0
+        ELSE ("storypoints"."total_SPs" / "commitment"."expected_storypoints")
+    END AS "res"
 INTO ratio
 FROM
     -- team commitment
     (
         SELECT
-            "public"."users_commitment"."expected_storypoints" AS "expected_storypoints"
+            CASE 
+                WHEN "public"."users_commitment"."expected_storypoints" IS NULL THEN 0
+                ELSE "public"."users_commitment"."expected_storypoints"
+            END AS "expected_storypoints"
         FROM
             "public"."users_commitment"
             LEFT JOIN "public"."scrum_projects" AS "Scrum Projects - Project" ON "public"."users_commitment"."project" = "Scrum Projects - Project"."ref"
@@ -92,26 +96,14 @@ FROM
             GROUP BY
                 "userstories_userstory"."id"
         ),
-        -- SPs that are done (subtract this value from the total_SPs if needed)
-        to_subtract AS (
-            SELECT
-                milestone_id,
-                removed_sps
-            FROM
-                milestones_refinement
-            WHERE
-                milestone_id = (
-                    SELECT
-                        id
-                    FROM
-                        PreviousMilestone
-                )
-        )
+
         SELECT
-            SUM(SPs.sum) AS "total_SPs"
+            CASE
+                WHEN SUM(SPs.sum) IS NULL THEN 0
+                ELSE SUM(SPs.sum)
+            END AS "total_SPs"
         FROM
             SPs,
-            to_subtract
     ) AS "storypoints";
 
 RETURN ratio;
