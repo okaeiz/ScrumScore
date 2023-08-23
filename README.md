@@ -1,6 +1,4 @@
-Certainly! Below is your updated `readme.md` file.
 
----
 
 # Scrum Adherence Score Calculator for Cultural Institutions
 
