@@ -76,10 +76,11 @@ FROM "public"."projects_membership"
 LEFT JOIN "public"."users_user" AS "Users User - User" ON "public"."projects_membership"."user_id" = "Users User - User"."id"
 WHERE "public"."projects_membership"."project_id" = p_project_id),
 
-    organization_members_count AS (SELECT COUNT(*) AS "total_count"
+    organization_members_count AS (SELECT COUNT(DISTINCT "public"."projects_membership"."user_id") AS "total_count"
 FROM "public"."projects_membership"
 LEFT JOIN "public"."users_user" AS "Users User - User" ON "public"."projects_membership"."user_id" = "Users User - User"."id"
-WHERE ("public"."projects_membership"."project_id") IN (28, 32, 29, 40, 37, 31, 34, 9, 30, 35, 43, 5, 39, 50)
+WHERE ("public"."projects_membership"."project_id") IN (28, 32, 29, 40, 37, 31, 34, 9, 30, 35, 43, 5, 39, 50);
+
 ),
 pre_aggregated AS (
     SELECT
