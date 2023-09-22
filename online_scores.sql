@@ -6,8 +6,8 @@ WITH cte AS (SELECT sp.ref                                                      
                     (SELECT milestones_milestone.id
                      FROM milestones_milestone
                      WHERE milestones_milestone.project_id = sp.ref
-                       AND now() >= milestones_milestone.estimated_start
-                       AND now() <= milestones_milestone.estimated_finish
+                       AND now()::date >= milestones_milestone.estimated_start
+                       AND now()::date <= milestones_milestone.estimated_finish
                      ORDER BY milestones_milestone.estimated_finish DESC
                      LIMIT 1)                                                             AS milestone_id,
                     COALESCE(fetch_a_value(sp.ref), 0::double precision)                  AS a_value,
@@ -49,4 +49,3 @@ FROM cte;
 
 alter table public.online_scores
     owner to taiga_u;
-
