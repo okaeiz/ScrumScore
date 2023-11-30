@@ -1,42 +1,63 @@
--- MAKE SURE YOU HAVE UPDATES THE USER STORY STATUSES BEFORE TRYING TO RUN THIS QUERY!
-CREATE OR REPLACE FUNCTION fetch_d_value(pid INT)
-    RETURNS FLOAT AS
+create function public.fetch_d_value(pid integer) returns double precision
+    language plpgsql
+as
 $$
 DECLARE
     result_value FLOAT;
+    total_SPs FLOAT;
 BEGIN
 
-    WITH Q1 AS (With DoneUSs AS (SELECT "source"."id"                           AS "id",
-                                        "source"."subject"                      AS "subject",
-                                        SUM("Projects Points - Points"."value") AS "sum"
-                                 FROM (SELECT uu."id",
-                                              uu."subject"
-                                       FROM "public"."userstories_userstory" AS uu
-                                       WHERE uu."project_id" = pid
-                                         AND uu."is_closed" = TRUE
-                                         AND uu."milestone_id" = (SELECT "id"
-                                                                  FROM "public"."milestones_milestone"
-                                                                  WHERE "project_id" = pid
-                                                                  ORDER BY "estimated_finish" DESC
-                                                                  LIMIT 1)
-                                       GROUP BY uu."id",
-                                                uu."subject") AS "source"
-                                          LEFT JOIN "public"."userstories_rolepoints" AS "Userstories Rolepoints"
-                                                    ON "source"."id" = "Userstories Rolepoints"."user_story_id"
-                                          LEFT JOIN "public"."projects_points" AS "Projects Points - Points"
-                                                    ON "Userstories Rolepoints"."points_id" = "Projects Points - Points"."id"
-                                 GROUP BY "source"."id",
-                                          "source"."subject"
-                                 ORDER BY "source"."id" ASC,
-                                          "source"."subject" ASC)
+    WITH Q1 AS (
+SELECT
+        us."subject" AS "subject",
+        CASE
+            WHEN SUM((cav."attributes_values"#>> array[(SELECT task_done_id FROM scrum_projects WHERE ref = us."project_id")::text]::text[])::double precision) > sp."sum1" THEN sp."sum1"
+            ELSE SUM((cav."attributes_values"#>> array[(SELECT task_done_id FROM scrum_projects WHERE ref = us."project_id")::text]::text[])::double precision)
+        END AS "sum"
+    FROM
+        "public"."tasks_task"
+    LEFT JOIN
+        "public"."userstories_userstory" AS us ON "public"."tasks_task"."user_story_id" = us."id"
+    LEFT JOIN
+        "public"."custom_attributes_taskcustomattributesvalues" AS cav ON "public"."tasks_task"."id" = cav."task_id"
+    LEFT JOIN
+        (
+            SELECT
+                "public"."userstories_userstory"."id" AS us_id,
+                SUM("projects_points"."value") AS "sum1"
+            FROM
+                "public"."userstories_userstory"
+            LEFT JOIN
+                "public"."userstories_rolepoints" ON "public"."userstories_userstory"."id" = "userstories_rolepoints"."user_story_id"
+            LEFT JOIN
+                "public"."projects_points" ON "userstories_rolepoints"."points_id" = "projects_points"."id"
+            WHERE
+                "public"."userstories_userstory"."project_id" = pid
+            GROUP BY
+                "public"."userstories_userstory"."id"
+        ) AS sp ON us."id" = sp.us_id
+WHERE us."project_id" = pid
+    AND us."is_closed" = TRUE
+    AND us."status_id" = (SELECT us_done_id FROM scrum_projects WHERE ref = pid)
+    AND "public"."tasks_task"."status_id" IN
+        (SELECT task_status_done_id
+        FROM scrum_projects
+        WHERE ref = pid)
+    AND us."milestone_id" = (
+SELECT milestones_milestone.id
+                     FROM milestones_milestone
+                     WHERE milestones_milestone.project_id = pid
+                     AND now()::date >= milestones_milestone.estimated_start
+                     AND now()::date <= milestones_milestone.estimated_finish
+                     ORDER BY milestones_milestone.estimated_finish DESC
+                     LIMIT 1
+    )
+GROUP BY
+        us."subject", sp."sum1"    )
+    SELECT SUM("sum") INTO result_value FROM Q1;
 
-                SELECT CASE
-                           WHEN SUM(DoneUSs.sum) IS NULL THEN 0
-                           ELSE SUM(DoneUSs.sum)
-                           END AS "sum"
-                FROM DoneUSs),
-
-         Q2 AS (SELECT SUM("SPs"."sum") AS "total_SPs"
+    WITH Q2 AS (
+SELECT SUM("SPs"."sum") AS "total_SPs"
                 FROM (SELECT "userstories_userstory"."subject"       AS "subject",
                              SUM("Projects Points - Points"."value") AS "sum"
                       FROM "public"."userstories_userstory"
@@ -45,23 +66,25 @@ BEGIN
                                LEFT JOIN "public"."projects_points" AS "Projects Points - Points"
                                          ON "Userstories Rolepoints"."points_id" = "Projects Points - Points"."id"
                       WHERE "userstories_userstory"."project_id" = pid
-                        AND "userstories_userstory"."milestone_id" = (SELECT "id"
-                                                                      FROM "public"."milestones_milestone"
-                                                                      WHERE "project_id" = pid
-                                                                      ORDER BY "estimated_finish" DESC
-                                                                      LIMIT 1)
-                      GROUP BY "userstories_userstory"."subject") AS "SPs")
+                        AND "userstories_userstory"."milestone_id" = (SELECT milestones_milestone.id
+                     FROM milestones_milestone
+                     WHERE milestones_milestone.project_id = pid
+                       AND now()::date >= milestones_milestone.estimated_start
+                       AND now()::date <= milestones_milestone.estimated_finish                     ORDER BY milestones_milestone.estimated_finish DESC
+                     LIMIT 1)
+                      GROUP BY "userstories_userstory"."subject") AS "SPs"    )
+    SELECT "total_SPs" INTO total_SPs FROM Q2;
 
-    SELECT CASE
-               WHEN Q2."total_SPs" IS NULL OR Q1."sum" IS NULL THEN 0
-               ELSE Q1."sum" / Q2."total_SPs"
-            END AS "res"
-
-    INTO result_value
-    FROM Q1,
-         Q2;
+    IF total_SPs IS NULL OR result_value IS NULL THEN
+        result_value := 0;
+    ELSE
+        result_value := result_value / total_SPs;
+    END IF;
 
     RETURN result_value;
 
 END;
-$$ LANGUAGE plpgsql;
+$$;
+
+alter function public.fetch_d_value(integer) owner to taiga_u;
+
