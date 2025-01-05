@@ -14,7 +14,7 @@ A comprehensive tool designed to calculate an overall Scrum adherence score for 
 
 ## Background
 
-The Scrum Adherence Score Calculator emerged from the need to quantify the adherence of various groups within a cultural institution to the Scrum methodology. With the parameters and formula continually refined, this tool serves as a reliable metric of Scrum commitment.
+The Scrum Adherence Score Calculator emerged from the need to quantify the adherence of various groups or departments within a cultural institution to the Scrum methodology. With the parameters and formula continually refined, this tool serves as a reliable metric of Scrum commitment.
 
 ## Parameters
 
