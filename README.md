@@ -72,6 +72,7 @@ Detailed steps can be found in the [usage guide](https://docs.google.com/documen
 ## Contribute
 
 Contributions, feedback, and improvements are welcome. To contribute:
+0. Contact @okeaiz first.
 1. Fork the repository.
 2. Create a new branch.
 3. Submit your changes with a descriptive commit message.
